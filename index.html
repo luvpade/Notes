@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        botany: '#10b981', // emerald-500
+                        zoology: '#3b82f6', // blue-500
+                        chem: '#8b5cf6', // violet-500
+                        physics: '#f97316', // orange-500
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth theme transition */
+        html {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .strikethrough {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight">Homework Tracker</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Keep track of your daily tasks</p>
+            </div>
+            <button id="themeToggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" aria-label="Toggle dark mode">
+                <!-- Sun Icon (Hidden in Light Mode) -->
+                <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block text-yellow-400"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                <!-- Moon Icon (Hidden in Dark Mode) -->
+                <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden text-slate-700"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            </button>
+        </header>
+
+        <!-- Form Section -->
+        <section class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 mb-8">
+            <form id="hwForm" class="space-y-4">
+                <div>
+                    <label for="hwName" class="block text-sm font-medium mb-1">Homework Name</label>
+                    <input type="text" id="hwName" required placeholder="e.g., Chapter 4 Review" 
+                        class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="hwSubject" class="block text-sm font-medium mb-1">Subject</label>
+                        <select id="hwSubject" required 
+                            class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" disabled selected>Select subject...</option>
+                            <option value="Botany">Botany</option>
+                            <option value="Zoology">Zoology</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="Physics">Physics</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="hwPage" class="block text-sm font-medium mb-1">Page No.</label>
+                        <input type="text" id="hwPage" required placeholder="e.g., 42" 
+                            class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="hwRange" class="block text-sm font-medium mb-1">Questions</label>
+                        <input type="text" id="hwRange" required placeholder="e.g., 1-15" 
+                            class="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-700 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    Add Homework
+                </button>
+            </form>
+        </section>
+
+        <!-- List Section -->
+        <section>
+            <div class="flex justify-between items-end mb-4">
+                <h2 class="text-xl font-semibold">Your Tasks</h2>
+                <span id="taskCount" class="text-sm text-slate-500 dark:text-slate-400">0 tasks</span>
+            </div>
+            
+            <div id="homeworkList" class="flex flex-col gap-3">
+                <!-- Homework items will be injected here via JavaScript -->
+                <div class="text-center py-10 text-slate-500 dark:text-slate-400">
+                    Loading your homework...
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 flex flex-col gap-2 z-50"></div>
+
+    <!-- Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // State & Configuration
+        let homeworks = [];
+        let dbMode = 'memory'; 
+        let app, auth, db, currentUserId, appId;
+        let unsubscribeSnapshot = null;
+
+        // UI Elements
+        const form = document.getElementById('hwForm');
+        const listContainer = document.getElementById('homeworkList');
+        const taskCount = document.getElementById('taskCount');
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Subject Colors Map
+        const subjectColors = {
+            'Botany': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+            'Zoology': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+            'Chemistry': 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 border-violet-200 dark:border-violet-800',
+            'Physics': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800'
+        };
+
+        // --- Theme Toggle Logic ---
+        function toggleTheme() {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                // Store preference in standard local storage just for UI theme (not data)
+                localStorage.setItem('theme', 'light');
+            } else {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize theme based on past preference or system
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+        } else {
+            htmlElement.classList.remove('dark');
+        }
+        themeToggleBtn.addEventListener('click', toggleTheme);
+
+        // --- Toast Notification Logic ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'error' ? 'bg-red-500' : 'bg-slate-800 dark:bg-slate-200';
+            const textColor = type === 'error' ? 'text-white' : 'text-white dark:text-slate-900';
+            
+            toast.className = `${bgColor} ${textColor} px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-10 opacity-0 flex items-center gap-2 text-sm font-medium`;
+            toast.innerHTML = message;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            });
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- Backend Initialization (Firebase Cloud Storage) ---
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                dbMode = 'firestore';
+            }
+        } catch (e) {
+            console.warn("Cloud config not found, running in memory-only mode for this session.");
+            dbMode = 'memory';
+            renderHomework(); // Just clear loading state
+        }
+
+        // Initialize Authentication if using Firebase
+        const initAuth = async () => {
+            if (dbMode !== 'firestore') return;
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.error("Auth error", e);
+                showToast("Failed to connect to cloud storage.", "error");
+                dbMode = 'memory';
+                renderHomework();
+            }
+        };
+
+        if (dbMode === 'firestore') {
+            initAuth();
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    loadHomeworkFromCloud();
+                } else {
+                    currentUserId = null;
+                    if(unsubscribeSnapshot) unsubscribeSnapshot();
+                    homeworks = [];
+                    renderHomework();
+                }
+            });
+        }
+
+        // --- Data Operations ---
+        function loadHomeworkFromCloud() {
+            if (!currentUserId || dbMode !== 'firestore') return;
+            
+            // Strict Path Rule: collection(db, 'artifacts', appId, 'users', userId, collectionName)
+            const hwCollection = collection(db, 'artifacts', appId, 'users', currentUserId, 'homework');
+            
+            // No Complex Queries Rule: Fetch all, handle sorting in JS
+            unsubscribeSnapshot = onSnapshot(hwCollection, (snapshot) => {
+                const hws = [];
+                snapshot.forEach(doc => {
+                    hws.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by creation time (newest first)
+                homeworks = hws.sort((a, b) => b.createdAt - a.createdAt);
+                renderHomework();
+            }, (error) => {
+                console.error("Fetch error:", error);
+                showToast("Could not sync with cloud.", "error");
+            });
+        }
+
+        async function handleAddHomework(e) {
+            e.preventDefault();
+            
+            const newHw = {
+                name: document.getElementById('hwName').value,
+                subject: document.getElementById('hwSubject').value,
+                page: document.getElementById('hwPage').value,
+                range: document.getElementById('hwRange').value,
+                completed: false,
+                createdAt: Date.now()
+            };
+
+            if (dbMode === 'firestore' && currentUserId) {
+                try {
+                    const hwCollection = collection(db, 'artifacts', appId, 'users', currentUserId, 'homework');
+                    await addDoc(hwCollection, newHw);
+                    showToast("Homework added!");
+                    form.reset();
+                } catch (error) {
+                    console.error("Add error:", error);
+                    showToast("Failed to save homework.", "error");
+                }
+            } else {
+                // Memory fallback
+                newHw.id = 'mem_' + Date.now();
+                homeworks.unshift(newHw);
+                renderHomework();
+                showToast("Homework added (Session only)!");
+                form.reset();
+            }
+        }
+
+        window.toggleComplete = async function(id) {
+            const hw = homeworks.find(h => h.id === id);
+            if (!hw) return;
+
+            const newStatus = !hw.completed;
+
+            if (dbMode === 'firestore' && currentUserId) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'homework', id);
+                    await updateDoc(docRef, { completed: newStatus });
+                } catch (error) {
+                    console.error("Update error:", error);
+                    showToast("Failed to update status.", "error");
+                }
+            } else {
+                hw.completed = newStatus;
+                renderHomework();
+            }
+        }
+
+        window.deleteHomework = async function(id) {
+            if (dbMode === 'firestore' && currentUserId) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'homework', id);
+                    await deleteDoc(docRef);
+                    showToast("Homework deleted");
+                } catch (error) {
+                    console.error("Delete error:", error);
+                    showToast("Failed to delete.", "error");
+                }
+            } else {
+                homeworks = homeworks.filter(h => h.id !== id);
+                renderHomework();
+                showToast("Homework deleted");
+            }
+        }
+
+        form.addEventListener('submit', handleAddHomework);
+
+        // --- Render UI ---
+        function renderHomework() {
+            listContainer.innerHTML = '';
+            
+            const completedCount = homeworks.filter(h => h.completed).length;
+            taskCount.textContent = `${homeworks.length} task${homeworks.length !== 1 ? 's' : ''} (${completedCount} done)`;
+
+            if (homeworks.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-12 px-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-3 opacity-50"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                        <p>No homework added yet.</p>
+                        <p class="text-sm mt-1">Fill out the form above to get started!</p>
+                    </div>`;
+                return;
+            }
+
+            homeworks.forEach(hw => {
+                const card = document.createElement('div');
+                const isDone = hw.completed;
+                const colors = subjectColors[hw.subject] || 'bg-gray-100 text-gray-700 border-gray-200';
+                
+                // Style differences for completed vs active
+                const baseClasses = "flex items-start gap-4 p-4 rounded-xl border transition-all duration-200 group";
+                const activeClasses = "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md";
+                const doneClasses = "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800/50 opacity-60";
+                
+                card.className = `${baseClasses} ${isDone ? doneClasses : activeClasses}`;
+
+                card.innerHTML = `
+                    <button onclick="toggleComplete('${hw.id}')" 
+                        class="mt-1 flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
+                        ${isDone ? 'bg-green-500 border-green-500 text-white' : 'border-slate-300 dark:border-slate-600 hover:border-blue-500'}">
+                        ${isDone ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+                    </button>
+                    
+                    <div class="flex-grow min-w-0" style="cursor: pointer;" onclick="toggleComplete('${hw.id}')">
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-full border ${colors}">
+                                ${hw.subject}
+                            </span>
+                        </div>
+                        <h3 class="text-base font-medium truncate ${isDone ? 'strikethrough text-slate-500' : ''}">
+                            ${hw.name}
+                        </h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 flex gap-4">
+                            <span><strong class="font-medium">Pg:</strong> ${hw.page}</span>
+                            <span><strong class="font-medium">Q:</strong> ${hw.range}</span>
+                        </p>
+                    </div>
+
+                    <button onclick="deleteHomework('${hw.id}')" class="flex-shrink-0 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100" aria-label="Delete homework">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                    </button>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
+
+```
