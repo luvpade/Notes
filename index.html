@@ -12,26 +12,19 @@
             theme: {
                 extend: {
                     colors: {
-                        botany: '#10b981', // emerald-500
-                        zoology: '#3b82f6', // blue-500
-                        chem: '#8b5cf6', // violet-500
-                        physics: '#f97316', // orange-500
+                        botany: '#10b981', 
+                        zoology: '#3b82f6', 
+                        chem: '#8b5cf6', 
+                        physics: '#f97316', 
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Smooth theme transition */
-        html {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        .strikethrough {
-            text-decoration: line-through;
-        }
+        html { transition: background-color 0.3s ease, color 0.3s ease; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .strikethrough { text-decoration: line-through; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen p-4 md:p-8">
@@ -41,12 +34,10 @@
         <header class="flex justify-between items-center mb-8">
             <div>
                 <h1 class="text-3xl font-bold tracking-tight">Homework Tracker</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Keep track of your daily tasks</p>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Saved locally to your browser</p>
             </div>
             <button id="themeToggle" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors" aria-label="Toggle dark mode">
-                <!-- Sun Icon -->
                 <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden dark:block text-yellow-400"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-                <!-- Moon Icon -->
                 <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="block dark:hidden text-slate-700"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
             </button>
         </header>
@@ -99,30 +90,19 @@
             </div>
             
             <div id="homeworkList" class="flex flex-col gap-3">
-                <!-- Homework items will be injected here via JavaScript -->
-                <div class="text-center py-10 text-slate-500 dark:text-slate-400">
-                    Loading your homework...
-                </div>
+                <!-- Homework items injected here -->
             </div>
         </section>
     </div>
 
-    <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed bottom-4 right-4 flex flex-col gap-2 z-50"></div>
 
-    <!-- Application Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // State & Configuration
+    <script>
+        // State
         let homeworks = [];
-        let dbMode = 'memory'; 
-        let app, auth, db, currentUserId, appId;
-        let unsubscribeSnapshot = null;
-
-        // UI Elements
+        const STORAGE_KEY = 'my_homework_data_v1';
+        
+        // DOM Elements
         const form = document.getElementById('hwForm');
         const listContainer = document.getElementById('homeworkList');
         const taskCount = document.getElementById('taskCount');
@@ -137,121 +117,79 @@
             'Physics': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800'
         };
 
-        // --- Theme Toggle Logic ---
+        // --- Theme Logic ---
         function toggleTheme() {
-            if (htmlElement.classList.contains('dark')) {
-                htmlElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            } else {
-                htmlElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
+            try {
+                if (htmlElement.classList.contains('dark')) {
+                    htmlElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    htmlElement.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+            } catch (e) {
+                // Ignore sandbox errors
+                htmlElement.classList.toggle('dark');
             }
         }
 
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            htmlElement.classList.add('dark');
-        } else {
+        try {
+            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                htmlElement.classList.add('dark');
+            } else {
+                htmlElement.classList.remove('dark');
+            }
+        } catch (e) {
+            // Default to light if storage is blocked
             htmlElement.classList.remove('dark');
         }
+        
         themeToggleBtn.addEventListener('click', toggleTheme);
 
-        // --- Toast Notification Logic ---
+        // --- Toast Notifications ---
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            
             const bgColor = type === 'error' ? 'bg-red-500' : 'bg-slate-800 dark:bg-slate-200';
             const textColor = type === 'error' ? 'text-white' : 'text-white dark:text-slate-900';
             
             toast.className = `${bgColor} ${textColor} px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-y-10 opacity-0 flex items-center gap-2 text-sm font-medium`;
             toast.innerHTML = message;
-            
             container.appendChild(toast);
             
             requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
-
             setTimeout(() => {
                 toast.classList.add('translate-y-10', 'opacity-0');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        // --- Backend Initialization ---
-        // Fix: Explicitly handle cases where Firebase variables don't exist
-        if (typeof __firebase_config !== 'undefined') {
+        // --- Local Storage Data Operations ---
+        function loadHomework() {
             try {
-                const firebaseConfig = JSON.parse(__firebase_config);
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                dbMode = 'firestore';
-            } catch (e) {
-                console.warn("Could not load cloud setup. Falling back to memory mode.");
-                dbMode = 'memory';
-            }
-        } else {
-            dbMode = 'memory';
-        }
-
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                if (storedData) {
+                    homeworks = JSON.parse(storedData);
                 }
             } catch (e) {
-                console.error("Auth error", e);
-                showToast("Failed to connect to cloud storage.", "error");
-                dbMode = 'memory';
-                renderHomework(); // Fallback UI render
+                console.warn("Browser prevented LocalStorage access. This is expected in the live preview iframe.");
+                showToast("Data won't save across reloads inside this preview window.", "error");
             }
-        };
-
-        if (dbMode === 'firestore') {
-            initAuth();
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    currentUserId = user.uid;
-                    loadHomeworkFromCloud();
-                } else {
-                    currentUserId = null;
-                    if(unsubscribeSnapshot) unsubscribeSnapshot();
-                    homeworks = [];
-                    renderHomework();
-                }
-            });
-        } else {
-            // FIX: Ensure UI renders instantly if we bypass Firebase entirely
-            renderHomework(); 
+            renderHomework();
         }
 
-        // --- Data Operations ---
-        function loadHomeworkFromCloud() {
-            if (!currentUserId || dbMode !== 'firestore') return;
-            
-            const hwCollection = collection(db, 'artifacts', appId, 'users', currentUserId, 'homework');
-            
-            unsubscribeSnapshot = onSnapshot(hwCollection, (snapshot) => {
-                const hws = [];
-                snapshot.forEach(doc => {
-                    hws.push({ id: doc.id, ...doc.data() });
-                });
-                homeworks = hws.sort((a, b) => b.createdAt - a.createdAt);
-                renderHomework();
-            }, (error) => {
-                console.error("Fetch error:", error);
-                showToast("Could not sync with cloud.", "error");
-                // Clear loading screen on error
-                renderHomework();
-            });
+        function saveHomework() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(homeworks));
+            } catch (e) {
+                console.warn("Could not save to LocalStorage.");
+            }
         }
 
-        async function handleAddHomework(e) {
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
-            
             const newHw = {
+                id: 'hw_' + Date.now(),
                 name: document.getElementById('hwName').value,
                 subject: document.getElementById('hwSubject').value,
                 page: document.getElementById('hwPage').value,
@@ -260,68 +198,32 @@
                 createdAt: Date.now()
             };
 
-            if (dbMode === 'firestore' && currentUserId) {
-                try {
-                    const hwCollection = collection(db, 'artifacts', appId, 'users', currentUserId, 'homework');
-                    await addDoc(hwCollection, newHw);
-                    showToast("Homework added!");
-                    form.reset();
-                } catch (error) {
-                    console.error("Add error:", error);
-                    showToast("Failed to save homework.", "error");
-                }
-            } else {
-                newHw.id = 'mem_' + Date.now();
-                homeworks.unshift(newHw);
-                renderHomework();
-                showToast("Homework added (Session only)!");
-                form.reset();
-            }
-        }
+            homeworks.unshift(newHw);
+            saveHomework();
+            renderHomework();
+            showToast("Homework added!");
+            form.reset();
+        });
 
-        window.toggleComplete = async function(id) {
+        window.toggleComplete = function(id) {
             const hw = homeworks.find(h => h.id === id);
-            if (!hw) return;
-
-            const newStatus = !hw.completed;
-
-            if (dbMode === 'firestore' && currentUserId) {
-                try {
-                    const docRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'homework', id);
-                    await updateDoc(docRef, { completed: newStatus });
-                } catch (error) {
-                    console.error("Update error:", error);
-                    showToast("Failed to update status.", "error");
-                }
-            } else {
-                hw.completed = newStatus;
+            if (hw) {
+                hw.completed = !hw.completed;
+                saveHomework();
                 renderHomework();
             }
         }
 
-        window.deleteHomework = async function(id) {
-            if (dbMode === 'firestore' && currentUserId) {
-                try {
-                    const docRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'homework', id);
-                    await deleteDoc(docRef);
-                    showToast("Homework deleted");
-                } catch (error) {
-                    console.error("Delete error:", error);
-                    showToast("Failed to delete.", "error");
-                }
-            } else {
-                homeworks = homeworks.filter(h => h.id !== id);
-                renderHomework();
-                showToast("Homework deleted");
-            }
+        window.deleteHomework = function(id) {
+            homeworks = homeworks.filter(h => h.id !== id);
+            saveHomework();
+            renderHomework();
+            showToast("Homework deleted");
         }
-
-        form.addEventListener('submit', handleAddHomework);
 
         // --- Render UI ---
         function renderHomework() {
             listContainer.innerHTML = '';
-            
             const completedCount = homeworks.filter(h => h.completed).length;
             taskCount.textContent = `${homeworks.length} task${homeworks.length !== 1 ? 's' : ''} (${completedCount} done)`;
 
@@ -375,7 +277,12 @@
                 listContainer.appendChild(card);
             });
         }
+
+        // Initialize
+        loadHomework();
+
     </script>
 </body>
 </html>
-                    
+
+
